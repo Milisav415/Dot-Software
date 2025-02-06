@@ -1,0 +1,12 @@
+# overhead_data.yaml
+
+# Paths to the image directories for training and validation
+train: C:\Users\jm190\Desktop\jhu_crowd_v2.0\train\images
+test: C:\Users\jm190\Desktop\jhu_crowd_v2.0\test\images
+val: C:\Users\jm190\Desktop\jhu_crowd_v2.0\val\images
+
+# Number of classes (for people detection, it's 1)
+nc: 1
+
+# Class names (here, only 'person')
+names: ['person']

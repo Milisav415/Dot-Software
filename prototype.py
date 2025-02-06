@@ -112,7 +112,7 @@ def predict_count(model, image_or_path, device, transform=None):
     return output.item()
 
 
-def count_people_yolov8(image_or_path, conf_threshold=0.1, device="cpu"):
+def count_people_yolo(image_or_path, conf_threshold=0.1, device="cpu"):
     """
     Counts people in an image using a pretrained YOLOv8 model.
 
@@ -156,6 +156,19 @@ def count_people_yolov8(image_or_path, conf_threshold=0.1, device="cpu"):
 
     return person_count, image
 
+def fine_tune_overhead_model(data_yaml, epochs=50, imgsz=640, batch=16, device="cuda"):
+    model = YOLO("yolov8n.pt")  # load pretrained YOLOv8n model
+    results = model.train(
+        data=data_yaml,
+        epochs=epochs,
+        imgsz=imgsz,
+        batch=batch,
+        device=device,
+        augment=True  # adjust augmentation settings as needed
+    )
+    return results
+
+
 def train_our_owen():
     # Set up image transforms
     transform = transforms.Compose([
@@ -166,7 +179,7 @@ def train_our_owen():
     ])
 
     # the fucking path
-    root_directory = "C:\\Users\\jm190\\Desktop\\jhu_crowd_v2.0"  # adjust path as needed
+    root_directory = R"C:\Users\jm190\Desktop\jhu_crowd_v2.0"  # adjust path as needed
 
     # model = CountRegressionModel()
     model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
@@ -202,16 +215,26 @@ def train_our_owen():
         print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}")
 
     # (Optionally) Save the trained model
-    # torch.save(model.state_dict(), "count_regression_model.pth")
-    image_path = 'C:\\Users\\jm190\\Desktop\\jhu_crowd_v2.0\\test\\images\\1222.jpg'
+    torch.save(model.state_dict(), "count_regression_model.pth")
+
+    # small test to see how the model works on an image of choice
+    image_path = R'C:\Users\jm190\Desktop\jhu_crowd_v2.0\test\images\1222.jpg' # change image num
     print(f'I say: {predict_count(model, image_path, device, transform=transform)} but its actually 409')
 
 # I know this looks ugly but shutup I`m not getting paid
 if __name__ == "__main__":
     # train_our_owen()
-    image_path = 'C:\\Users\\jm190\\Desktop\\jhu_crowd_v2.0\\test\\images\\1222.jpg'
+    image_path = R'C:\Users\jm190\Desktop\jhu_crowd_v2.0\test\images\1222.jpg'
 
-    count, image = count_people_yolov8(image_or_path=image_path)
+    count, image = count_people_yolo(image_or_path=image_path)
+    print(f'Number of people detected: {count}')
 
-    print(f'The model thinks there are: {count}\n')
+    # Path to your dataset configuration file
+    data_yaml = "overhead_data.yaml" # edit this file so that your directory is on it
+
+    """
+    uncomment the next two lines for fine_tune_overhead_model
+    """
+    # Fine-tune for, say, 500 epochs
+    # fine_tune_overhead_model(data_yaml, epochs=50, imgsz=640, batch=16, device="cuda")
 
