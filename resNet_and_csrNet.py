@@ -456,7 +456,7 @@ if __name__ == "__main__":
     root_directory = r"C:\Users\jm190\Desktop\jhu_crowd_v2.0"  # Update if your dataset location changes.
 
     # Choose the model type: either "resnet50" for a deeper ResNet backbone or "csrnet" for the CSRNet model.
-    # trained_model = train_our_model(root_directory, model_type="resnet50")
+    trained_model = train_our_model(root_directory, model_type="csrnet")
 
     model_path = "best_model.pth"
     image_path = r"C:\Users\jm190\Desktop\jhu_crowd_v2.0\test\images\2156.jpg"  # Update this path accordingly.
