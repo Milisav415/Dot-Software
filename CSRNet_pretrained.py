@@ -96,7 +96,7 @@ def main():
     ])
 
     # Set the path to your input image.
-    img_path = r"C:\Users\jm190\Desktop\ShanghaiTech_Crowd_Counting_Dataset\part_A_final\train_data\images\IMG_118.jpg"  # Replace with your image file path.
+    img_path = r"C:\Users\jm190\Desktop\jhu_crowd_v2.0\train\images\0283.jpg"  # Replace with your image file path.
 
     try:
         img = Image.open(img_path).convert("RGB")
