@@ -1,10 +1,15 @@
+import matplotlib
+matplotlib.use("TkAgg")  # Use the TkAgg backend for popup windows
 import torch
 import torch.nn as nn
-from torchvision import transforms
-from PIL import Image
 import matplotlib.pyplot as plt
 import os
 import math
+import numpy as np
+import torchvision.transforms.functional as TF
+from torchvision import transforms
+from PIL import Image
+
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
@@ -55,6 +60,18 @@ def segment_image(img, patch_size):
             segments.append((segment, box))
     return segments
 
+
+def custom_preprocess(img_path):
+    # Open the image and convert to RGB
+    img = Image.open(img_path).convert('RGB')
+    # Convert to a tensor and scale it to the [0,255] range
+    img_tensor = 255.0 * TF.to_tensor(img)
+    # Subtract the channel-specific means (in pixel space)
+    img_tensor[0, :, :] = img_tensor[0, :, :] - 92.8207477031
+    img_tensor[1, :, :] = img_tensor[1, :, :] - 95.2757037428
+    img_tensor[2, :, :] = img_tensor[2, :, :] - 104.877445883
+    return img_tensor
+
 def main():
     # Set the path to your pretrained CSRNet model.
     model_path = "PartAmodel_best.pth"  # Update with the correct filename/path.
@@ -79,17 +96,28 @@ def main():
     ])
 
     # Set the path to your input image.
-    img_path = r"C:\Users\jm190\Desktop\jhu_crowd_v2.0\train\images\1213.jpg"  # Replace with your image file path.
+    img_path = r"C:\Users\jm190\Desktop\ShanghaiTech_Crowd_Counting_Dataset\part_A_final\train_data\images\IMG_118.jpg"  # Replace with your image file path.
+
     try:
         img = Image.open(img_path).convert("RGB")
     except Exception as e:
         print("Error loading image:", e)
         return
 
-    # Display the original image.
+    # Convert the original image to a tensor.
+    img_tensor = transform(img)
+    # Permute the tensor to H x W x C for visualization.
+    img_tensor_np = img_tensor.permute(1, 2, 0).numpy()
+    # Unnormalize the image for display.
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    img_unnorm = img_tensor_np
+    img_unnorm = np.clip(img_unnorm, 0, 1)
+
+    # Display the image after conversion to a tensor in a popup window.
     plt.figure()
-    plt.imshow(img)
-    plt.title("Original Image")
+    plt.imshow(img_unnorm)
+    plt.title("Image after ToTensor Conversion")
     plt.axis("off")
     plt.show()
 
@@ -114,8 +142,10 @@ def main():
         total_count += count
         density_maps.append(density_map.cpu().numpy())
         counts.append(count)
-
     print("Total estimated count in the image: {:.2f}".format(total_count))
+
+    density_map_while_img = model(img_tensor)
+    print(f'Feeding the whole image we get: {density_map_while_img.sum().item()}')
 
     # Calculate grid dimensions based on original image dimensions.
     w, h = img.size
@@ -124,7 +154,6 @@ def main():
 
     # Create grid plot for heat maps.
     fig, axes = plt.subplots(rows, cols, figsize=(cols * 4, rows * 4))
-    # If there is only one subplot, ensure axes is a list.
     if rows * cols == 1:
         axes = [axes]
     else:
@@ -135,13 +164,12 @@ def main():
             im = ax.imshow(density_maps[idx], cmap='jet')
             ax.set_title(f"Seg {idx+1}: {counts[idx]:.2f}")
             ax.axis("off")
-            # Optionally, add a colorbar to each subplot.
             fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
         else:
             ax.axis("off")
 
     plt.tight_layout()
-    plt.show()
+    plt.show()  # This will open the grid plot in a popup window.
 
 if __name__ == '__main__':
     main()
